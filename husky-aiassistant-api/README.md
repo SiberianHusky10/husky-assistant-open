@@ -3,6 +3,7 @@
 ```sh
 python -m pip install -r requirements.txt
 ```
+## Configuration .env file
 
 # Project start
 ```sh
