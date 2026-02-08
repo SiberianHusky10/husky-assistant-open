@@ -1,7 +1,7 @@
 ## Install dependencies
 
 ```sh
-pip install fastapi pydantic python-dotenv openai uvicorn
+python -m pip install -r requirements.txt
 ```
 
 # Project start
