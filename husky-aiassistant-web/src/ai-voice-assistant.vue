@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+  <div class="app-root flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
     <!-- 头部 -->
     <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
       <h1 class="text-2xl font-bold text-indigo-600">AI 语音助手</h1>
@@ -14,7 +14,7 @@
     </header>
 
     <!-- 对话区域 -->
-    <div class="flex-1 overflow-y-auto px-4 py-6 space-y-4" ref="chatContainer">
+    <div class="flex-1 overflow-y-auto px-6 py-6 space-y-4 w-full" ref="chatContainer">
       <div
           v-for="(message, index) in messages"
           :key="index"
@@ -51,8 +51,8 @@
     </div>
 
     <!-- 输入区域 -->
-    <div class="bg-white border-t border-gray-200 px-4 py-4">
-      <div class="flex items-center space-x-3 max-w-4xl mx-auto">
+    <div class="bg-white border-t border-gray-200 px-6 py-4 w-full">
+      <div class="flex items-center space-x-3 w-full">
         <!-- 文本输入框 -->
         <input
             v-model="inputText"
@@ -342,3 +342,35 @@ const formatTime = (date) => {
   return `${hours}:${minutes}`
 }
 </script>
+
+<style>
+/* 全局重置，确保页面铺满整个浏览器 */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* 根容器使用 fixed 定位，直接相对视口，不依赖任何父元素宽度 */
+.app-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+</style>
