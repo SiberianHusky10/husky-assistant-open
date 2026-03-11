@@ -288,7 +288,7 @@ const sendMessage = async () => {
 
   try {
     // 调用后端接口
-    const response = await fetch('http://localhost:8000/chat', {
+    const response = await fetch('http://109.176.19.115:8000/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
