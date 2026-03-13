@@ -206,7 +206,7 @@ const sendVoiceMessage = async (message) => {
 
   try {
     // 调用语音专用接口 /voicechat
-    const response = await fetch('http://localhost:8000/voicechat', {
+    const response = await fetch('https://aihusky.tech/voicechat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
