@@ -16,3 +16,8 @@ pyaudio
 
 # Xunfei SDK used by test scripts
 xfyunsdkspeech
+
+#memeory
+langchain 
+langchain-community
+pysqlite3
