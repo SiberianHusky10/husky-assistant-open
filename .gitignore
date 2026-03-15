@@ -37,4 +37,4 @@ coverage
 __screenshots__/
 __pycache__/
 test/
-
+*.db

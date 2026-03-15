@@ -288,6 +288,8 @@ const sendMessage = async () => {
 
   try {
     // 调用后端接口
+    // 本地测试：http://localhost:8000/chat
+    // 线上测试：https://aihusky.tech/chat
     const response = await fetch('https://aihusky.tech/chat', {
       method: 'POST',
       headers: {

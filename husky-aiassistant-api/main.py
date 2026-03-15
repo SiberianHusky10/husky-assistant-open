@@ -10,6 +10,8 @@ from fastapi.responses import FileResponse
 from fastapi import BackgroundTasks
 import time
 from routers.voice import router as voice_router
+from langchain_community.chat_message_histories import SQLChatMessageHistory
+from langchain_core.messages import HumanMessage, AIMessage
 
 
 
@@ -51,29 +53,51 @@ def call_llm(user_text: str) -> str:
         base_url="https://api.deepseek.com"
     )
 
-    response = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "你是一个严谨、正式的 AI 助手。\n"
-                    "输出规则：\n"
-                    "1. 不要使用任何 Markdown 语法\n"
-                    "2. 不要使用星号（*）\n"
-                    "3. 不要使用表情符号或 Emoji\n"
-                    "4. 不要使用列表符号\n"
-                    "5. 只使用自然的纯文本回答\n"
-                )
-            },
-            {
-                "role": "user",
-                "content": user_text
-            }
-        ]
+# 1 创建 SQLite 聊天历史
+    history = SQLChatMessageHistory(
+        session_id="default_user",
+        connection_string = "sqlite:///data/chat_memory.db"
     )
 
-    return response.choices[0].message.content
+    # 2 获取历史消息
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "你是一个严谨、正式的 AI 助手。\n"
+                "输出规则：\n"
+                "1. 不要使用任何 Markdown 语法\n"
+                "2. 不要使用星号（*）\n"
+                "3. 不要使用表情符号或 Emoji\n"
+                "4. 不要使用列表符号\n"
+                "5. 只使用自然的纯文本回答\n"
+            )
+        }
+    ]
+
+    # 把历史记录加入 messages
+    for msg in history.messages:
+        if msg.type == "human":
+            messages.append({"role": "user", "content": msg.content})
+        else:
+            messages.append({"role": "assistant", "content": msg.content})
+
+    # 加入当前用户消息
+    messages.append({"role": "user", "content": user_text})
+
+    # 3 调用 LLM
+    response = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=messages
+    )
+
+    reply = response.choices[0].message.content
+
+    # 4 保存到 SQLite
+    history.add_message(HumanMessage(content=user_text))
+    history.add_message(AIMessage(content=reply))
+
+    return reply
 
 async def text_to_speech(text: str) -> str:
     filename = f"audio_{uuid.uuid4()}.mp3"
