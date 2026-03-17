@@ -102,7 +102,7 @@
 </template>
 
 <script setup>
-import {ref, onMounted, nextTick} from 'vue'
+import {ref, onMounted, nextTick, watch } from 'vue'
 import {Mic, Send, Settings} from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
@@ -118,6 +118,28 @@ const chatContainer = ref(null)
 
 let recognition = null
 let audioPlayer = null
+
+//  恢复历史消息
+const saved = localStorage.getItem('chat_messages')
+if (saved) {
+  try {
+  messages.value = JSON.parse(saved)
+} catch (e) {
+  console.error('解析历史消息失败:', e)
+  messages.value = []
+}
+} else {
+  messages.value.push({
+    role: 'assistant',
+    content: '你好！我是AI语音助手，你可以通过输入文字或语音与我对话。',
+    timestamp: new Date()
+  })
+}
+
+//  监听 messages 自动保存
+watch(messages, (newVal) => {
+  localStorage.setItem('chat_messages', JSON.stringify(newVal))
+}, { deep: true })
 
 // 初始化语音识别
 onMounted(() => {
@@ -160,12 +182,6 @@ onMounted(() => {
     error.value = '您的浏览器不支持语音识别功能'
   }
 
-  // 添加欢迎消息
-  messages.value.push({
-    role: 'assistant',
-    content: '你好！我是AI语音助手，你可以通过输入文字或语音与我对话。',
-    timestamp: new Date()
-  })
 })
 
 // 切换语音识别
@@ -338,7 +354,8 @@ const scrollToBottom = () => {
 }
 
 // 格式化时间
-const formatTime = (date) => {
+const formatTime = (time) => {
+  const date = new Date(time) // 转回 Date
   const hours = date.getHours().toString().padStart(2, '0')
   const minutes = date.getMinutes().toString().padStart(2, '0')
   return `${hours}:${minutes}`
