@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
@@ -12,6 +12,8 @@ import time
 from routers.voice import router as voice_router
 from langchain_community.chat_message_histories import SQLChatMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage
+import sqlite3
+import json
 
 
 
@@ -143,3 +145,33 @@ def get_audio(filename: str):
         filename="reply.mp3"
     )
 
+DB_PATH = "./data/chat_memory.db"
+
+@app.get("/getmessages")
+def get_messages(session_id: str = Query(..., description="会话 ID")):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT id, message FROM message_store WHERE session_id = ? ORDER BY id ASC",
+        (session_id,)
+    )
+    rows = cursor.fetchall()
+    conn.close()
+
+    messages = []
+    for row in rows:
+        raw_msg = row[1]  # message 字段是 JSON 字符串
+        try:
+            msg_obj = json.loads(raw_msg)  # JSON 解析
+            # 你可以把前端需要的字段提取出来
+            messages.append({
+                "role": msg_obj.get("type"),  # human/assistant
+                "content": msg_obj.get("data", {}).get("content"),
+                "timestamp": msg_obj.get("data", {}).get("timestamp")  # 如果你有 timestamp 字段
+            })
+        except Exception as e:
+            print("JSON解析失败:", e)
+            continue
+
+    return messages

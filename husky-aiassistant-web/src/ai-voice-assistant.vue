@@ -142,7 +142,27 @@ watch(messages, (newVal) => {
 }, { deep: true })
 
 // 初始化语音识别
-onMounted(() => {
+onMounted(async () => {
+  try {
+    //本地测试时使用：http://localhost:8000/getmessages?session_id=default_user
+    //线上测试时使用：https://api.aihusky.tech/getmessages?session_id=default_user
+    const res = await fetch('https://api.aihusky.tech/getmessages?session_id=default_user');  // FastAPI 接口
+    const data = await res.json();
+    if (data && data.length) {
+      messages.value = data.map(msg => ({
+        ...msg,
+        role: msg.role === 'human' ? 'user'
+          : msg.role === 'ai' ? 'assistant'
+          : msg.role,
+        timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
+      }));
+      // 更新 localStorage 缓存
+      localStorage.setItem('chat_messages', JSON.stringify(messages.value));
+    }
+  } catch (e) {
+    console.error('获取后端消息失败:', e);
+  }
+
   audioPlayer = new Audio()
 
   // 检查浏览器是否支持 Web Speech API
