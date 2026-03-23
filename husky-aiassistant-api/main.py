@@ -51,9 +51,11 @@ def chat(req: ChatRequest):
 def call_llm(user_text: str) -> str:
     load_dotenv()
     client = OpenAI(
-        api_key=os.getenv("DEEPSEEK_API_KEY"),
-        base_url="https://api.deepseek.com"
+        api_key=os.getenv("STEP_API_KEY"),
+        base_url="https://api.stepfun.com/v1"
     )
+    #可选模型密钥DEEPSEEK_API_KEY，https://api.deepseek.com
+    #可选模型密钥STEP_API_KEY，https://api.stepfun.com/v1
 
 # 1 创建 SQLite 聊天历史
     history = SQLChatMessageHistory(
@@ -89,9 +91,11 @@ def call_llm(user_text: str) -> str:
 
     # 3 调用 LLM
     response = client.chat.completions.create(
-        model="deepseek-chat",
+        model="step-3.5-flash",
         messages=messages
     )
+    #deepseek模型 deepseek-chat
+    #step模型 step-3.5-flash
 
     reply = response.choices[0].message.content
 
