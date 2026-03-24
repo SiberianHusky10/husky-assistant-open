@@ -14,6 +14,9 @@ from langchain_community.chat_message_histories import SQLChatMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage
 import sqlite3
 import json
+from langchain_community.tools import TavilySearchResults
+from langchain_core.utils.function_calling import convert_to_openai_tool
+import uvicorn
 
 
 
@@ -29,18 +32,20 @@ app.add_middleware(
 )
 
 app.include_router(voice_router)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 # 1. 定义请求体格式
 class ChatRequest(BaseModel):
     text: str
+    # session_id: str = "default"   # 允许前端不传时默认值（兼容旧客户端）
 
 # 2. 定义接口
 @app.post("/chat")
 def chat(req: ChatRequest):
     user_text = req.text
 
-    reply = call_llm(user_text)
+    reply = call_llm(user_text)   # 传入 session_id
     print(reply)
 
     return {
@@ -51,17 +56,30 @@ def chat(req: ChatRequest):
 def call_llm(user_text: str) -> str:
     load_dotenv()
     client = OpenAI(
-        api_key=os.getenv("STEP_API_KEY"),
-        base_url="https://api.stepfun.com/v1"
+        api_key=os.getenv("OPENROUTER_API_KEY"),
+        base_url="https://openrouter.ai/api/v1"
     )
     #可选模型密钥DEEPSEEK_API_KEY，https://api.deepseek.com
     #可选模型密钥STEP_API_KEY，https://api.stepfun.com/v1
+    #可选模型密钥OPENROUTER_API_KEY，https://openrouter.ai/api/v1
 
 # 1 创建 SQLite 聊天历史
     history = SQLChatMessageHistory(
         session_id="default_user",
-        connection_string = "sqlite:///data/chat_memory.db"
+        connection_string=f"sqlite:///{os.path.join(BASE_DIR, 'data', 'chat_memory.db').replace(os.sep, '/')}"
     )
+
+    # 新增： Tavily Search Tool（
+    search_tool = TavilySearchResults(
+        max_results=3,                    # 返回结果数量
+        search_depth="advanced",          # "basic" 或 "advanced"，推荐 advanced（对实时信息如天气更好）
+        include_answer=True,              # 让 Tavily 自动生成一个简洁的 AI 总结（极大提升答案质量）
+        include_raw_content=False,        # 如果不需要整页原始文本，可设为 False 节省 token
+        # include_images=False,           # 如需图片可打开
+    )
+
+    # 把 LangChain Tool 转换为 OpenAI 兼容的 tool 格式
+    tools = [convert_to_openai_tool(search_tool)]
 
     # 2 获取历史消息
     messages = [
@@ -89,15 +107,52 @@ def call_llm(user_text: str) -> str:
     # 加入当前用户消息
     messages.append({"role": "user", "content": user_text})
 
-    # 3 调用 LLM
+    # 3. 第一次调用 LLM（让模型决定是否使用工具）
     response = client.chat.completions.create(
-        model="step-3.5-flash",
-        messages=messages
+        model="minimax/minimax-m2.5",   # 或你想用的其他模型
+        messages=messages,
+        tools=tools,
+        tool_choice="auto",             # 推荐改成 "auto"，让模型智能决定是否调用工具（比强制调用更好）
+        temperature=0.0,
+        max_tokens=1024
     )
     #deepseek模型 deepseek-chat
     #step模型 step-3.5-flash
 
-    reply = response.choices[0].message.content
+    # 处理可能的 tool calls（这是实现实时查询的核心）
+    message = response.choices[0].message
+    reply = message.content
+
+    # 如果模型决定调用工具
+    if message.tool_calls:
+        tool_call = message.tool_calls[0]
+        tool_name = tool_call.function.name
+        tool_args = tool_call.function.arguments  # JSON 字符串
+
+        if tool_name == search_tool.name:
+            # 执行 Tavily 搜索（Tavily 的 run/invoke 都支持）
+            search_result = search_tool.run(tool_args)   # 或 search_tool.invoke(json.loads(tool_args))
+
+            # 把工具调用和结果塞回消息列表
+            messages.append({
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [tool_call.model_dump()]
+            })
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": str(search_result)   # Tavily 返回的是结构化字符串或 dict，转 str 即可
+            })
+
+            # 第二次调用 LLM，生成最终回答
+            second_response = client.chat.completions.create(
+                model="minimax/minimax-m2.5",
+                messages=messages,
+                temperature=0.0,
+                max_tokens=1024
+            )
+            reply = second_response.choices[0].message.content
 
     # 4 保存到 SQLite
     history.add_message(HumanMessage(content=user_text))
@@ -149,7 +204,7 @@ def get_audio(filename: str):
         filename="reply.mp3"
     )
 
-DB_PATH = "./data/chat_memory.db"
+DB_PATH = os.path.join(BASE_DIR, "data", "chat_memory.db")
 
 @app.get("/getmessages")
 def get_messages(session_id: str = Query(..., description="会话 ID")):
@@ -179,3 +234,7 @@ def get_messages(session_id: str = Query(..., description="会话 ID")):
             continue
 
     return messages
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

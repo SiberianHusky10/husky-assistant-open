@@ -18,6 +18,9 @@ pyaudio
 xfyunsdkspeech
 
 #memeory
-langchain 
+langchain-core 
 langchain-community
 pysqlite3
+
+#tools
+tavily-python
