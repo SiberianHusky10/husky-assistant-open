@@ -38,14 +38,15 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 1. 定义请求体格式
 class ChatRequest(BaseModel):
     text: str
-    # session_id: str = "default"   # 允许前端不传时默认值（兼容旧客户端）
+    session_id: str | None = "default"
 
 # 2. 定义接口
 @app.post("/chat")
 def chat(req: ChatRequest):
     user_text = req.text
+    session_id = req.session_id or "default"
 
-    reply = call_llm(user_text)   # 传入 session_id
+    reply = call_llm(user_text, session_id)   # 传入 session_id
     print(reply)
 
     return {
@@ -53,7 +54,7 @@ def chat(req: ChatRequest):
         "reply": reply
     }
 
-def call_llm(user_text: str) -> str:
+def call_llm(user_text: str, session_id: str) -> str:
     load_dotenv()
     client = OpenAI(
         api_key=os.getenv("OPENROUTER_API_KEY"),
@@ -65,7 +66,7 @@ def call_llm(user_text: str) -> str:
 
 # 1 创建 SQLite 聊天历史
     history = SQLChatMessageHistory(
-        session_id="default_user",
+        session_id=session_id,
         connection_string=f"sqlite:///{os.path.join(BASE_DIR, 'data', 'chat_memory.db').replace(os.sep, '/')}"
     )
 

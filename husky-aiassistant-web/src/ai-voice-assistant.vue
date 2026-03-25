@@ -119,36 +119,27 @@ const chatContainer = ref(null)
 let recognition = null
 let audioPlayer = null
 
-//  恢复历史消息
-const saved = localStorage.getItem('chat_messages')
-if (saved) {
-  try {
-  messages.value = JSON.parse(saved)
-} catch (e) {
-  console.error('解析历史消息失败:', e)
-  messages.value = []
-}
-} else {
-  messages.value.push({
-    role: 'assistant',
-    content: '你好！我是AI语音助手，你可以通过输入文字或语音与我对话。',
-    timestamp: new Date()
-  })
+function getDeviceId() {
+  let deviceId = localStorage.getItem("device_id");
+  if (!deviceId) {
+    deviceId = crypto.randomUUID();
+    localStorage.setItem("device_id", deviceId);
+  }
+  return deviceId;
 }
 
-//  监听 messages 自动保存
-watch(messages, (newVal) => {
-  localStorage.setItem('chat_messages', JSON.stringify(newVal))
-}, { deep: true })
+const deviceId = getDeviceId();
 
 // 初始化语音识别
 onMounted(async () => {
   try {
-    //本地测试时使用：http://localhost:8000/getmessages?session_id=default_user
-    //线上测试时使用：https://api.aihusky.tech/getmessages?session_id=default_user
-    const res = await fetch('https://api.aihusky.tech/getmessages?session_id=default_user');  // FastAPI 接口
+    //本地测试时使用：http://localhost:8000/getmessages?session_id=${deviceId} 
+    //线上测试时使用：https://api.aihusky.tech/getmessages?session_id=${deviceId}
+    const res = await fetch(`https://api.aihusky.tech/getmessages?session_id=${deviceId}`);
     const data = await res.json();
+
     if (data && data.length) {
+      // 有历史记录 → 用后端数据
       messages.value = data.map(msg => ({
         ...msg,
         role: msg.role === 'human' ? 'user'
@@ -156,11 +147,24 @@ onMounted(async () => {
           : msg.role,
         timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
       }));
-      // 更新 localStorage 缓存
-      localStorage.setItem('chat_messages', JSON.stringify(messages.value));
+    } else {
+      // 没有历史记录 → 显示默认欢迎语
+      messages.value = [{
+        role: 'assistant',
+        content: '你好！我是AI语音助手，你可以通过输入文字或语音与我对话。',
+        timestamp: new Date()
+      }];
     }
+
   } catch (e) {
     console.error('获取后端消息失败:', e);
+
+    // 接口异常时也给默认提示（避免页面空白）
+    messages.value = [{
+      role: 'assistant',
+      content: '后端接口调用失败，请检查网络连接或后端服务。',
+      timestamp: new Date()
+    }];
   }
 
   audioPlayer = new Audio()
@@ -332,7 +336,8 @@ const sendMessage = async () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        text: message
+        text: message,
+        session_id: deviceId
       })
     })
 
