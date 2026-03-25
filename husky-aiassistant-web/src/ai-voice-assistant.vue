@@ -130,7 +130,6 @@ function getDeviceId() {
 
 const deviceId = getDeviceId();
 
-// 初始化语音识别
 onMounted(async () => {
   try {
     //本地测试时使用：http://localhost:8000/getmessages?session_id=${deviceId} 

@@ -17,6 +17,7 @@ import json
 from langchain_community.tools import TavilySearchResults
 from langchain_core.utils.function_calling import convert_to_openai_tool
 import uvicorn
+import datetime
 
 
 
@@ -82,19 +83,24 @@ def call_llm(user_text: str, session_id: str) -> str:
     # 把 LangChain Tool 转换为 OpenAI 兼容的 tool 格式
     tools = [convert_to_openai_tool(search_tool)]
 
+    # 获取当前香港时间（UTC+8）
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
+    current_time_str = now.strftime("%Y年%m月%d日 %A %H:%M:%S")
     # 2 获取历史消息
     messages = [
         {
             "role": "system",
             "content": (
-                "你是一个严谨、正式的 AI 助手。\n"
-                "输出规则：\n"
-                "1. 不要使用任何 Markdown 语法\n"
-                "2. 不要使用星号（*）\n"
-                "3. 不要使用表情符号或 Emoji\n"
-                "4. 不要使用列表符号\n"
-                "5. 只使用自然的纯文本回答\n"
-            )
+            f"你是一个严谨、正式的 AI 助手。\n"
+            f"当前时间是：{current_time_str}（香港时间）。\n\n"
+            "输出规则：\n"
+            "1. 不要使用任何 Markdown 语法\n"
+            "2. 不要使用星号（*）\n"
+            "3. 不要使用表情符号或 Emoji\n"
+            "4. 不要使用列表符号\n"
+            "5. 只使用自然的纯文本回答\n\n"
+            "请在回答任何涉及日期、时间、时效性的问题时，严格使用上面提供的当前时间。"
+        )
         }
     ]
 
