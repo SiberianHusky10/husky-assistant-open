@@ -140,6 +140,8 @@ def call_llm(user_text: str, session_id: str) -> str:
             # 执行 Tavily 搜索（Tavily 的 run/invoke 都支持）
             search_result = search_tool.run(tool_args)   # 或 search_tool.invoke(json.loads(tool_args))
 
+            #测试输出结果
+            print("TAVILY RAW:", repr(search_result))
             # 把工具调用和结果塞回消息列表
             messages.append({
                 "role": "assistant",
@@ -152,6 +154,7 @@ def call_llm(user_text: str, session_id: str) -> str:
                 "content": str(search_result)   # Tavily 返回的是结构化字符串或 dict，转 str 即可
             })
 
+            print("second message:", repr(messages))
             # 第二次调用 LLM，生成最终回答
             second_response = client.chat.completions.create(
                 model="minimax/minimax-m2.5",
