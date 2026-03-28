@@ -1,0 +1,13 @@
+.git
+.gitignore
+.idea
+__pycache__
+*.py[cod]
+*$py.class
+.pytest_cache
+.mypy_cache
+.env
+*.iml
+*.md
+Dockerfile
+.dockerignore
