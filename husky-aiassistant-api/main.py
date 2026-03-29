@@ -18,7 +18,7 @@ from langchain_community.tools import TavilySearchResults
 from langchain_core.utils.function_calling import convert_to_openai_tool
 import uvicorn
 import datetime
-
+import httpx
 
 
 app = FastAPI()
