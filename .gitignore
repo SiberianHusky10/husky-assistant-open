@@ -38,3 +38,5 @@ __screenshots__/
 __pycache__/
 test/
 *.db
+
+secret.yaml

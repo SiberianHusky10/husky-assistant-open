@@ -1,0 +1,84 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: husky-aiassistant-api
+  labels:
+    app: husky-aiassistant-api
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: husky-aiassistant-api
+  namespace: husky-aiassistant-api
+  labels:
+    app: husky-aiassistant-api
+spec:
+  replicas: 1                    # 根据实际负载调整副本数
+  selector:
+    matchLabels:
+      app: husky-aiassistant-api
+  template:
+    metadata:
+      labels:
+        app: husky-aiassistant-api
+    spec:
+      containers:
+      - name: api
+        image: ghcr.io/siberianhusky10/husky-assistant-open/husky-aiassistant-api:latest   # ←←← 请替换为你的实际镜像
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000     # 假设你的 API 监听 8080 端口，请根据实际情况修改
+        envFrom:
+        - secretRef:
+            name: husky-aiassistant-api-secrets
+        # 可添加资源限制
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "2Gi"
+        # 如果需要挂载配置或持久卷，可在此添加 volumeMounts 和 volumes
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: husky-aiassistant-api
+  namespace: husky-aiassistant-api
+  labels:
+    app: husky-aiassistant-api
+spec:
+  type: NodePort
+  selector:
+    app: husky-aiassistant-api
+  ports:
+  - port: 8000                    # 集群内访问端口（与 ClusterIP 时一致）
+    targetPort: 8000            # 对应 Deployment 中容器的端口
+    nodePort: 30800             # 节点对外端口（30000–32767）；可删掉此行由集群自动分配
+    protocol: TCP
+    name: http
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: husky-aiassistant-api
+  namespace: husky-aiassistant-api
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: api.aihusky.tech
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: husky-aiassistant-api
+                port:
+                  number: 8000
