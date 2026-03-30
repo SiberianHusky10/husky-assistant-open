@@ -132,9 +132,7 @@ const deviceId = getDeviceId();
 
 onMounted(async () => {
   try {
-    //本地测试时使用：http://localhost:8000/getmessages?session_id=${deviceId} 
-    //线上测试时使用：https://api.aihusky.tech/getmessages?session_id=${deviceId}
-    const res = await fetch(`https://api.aihusky.tech/getmessages?session_id=${deviceId}`);
+    const res = await fetch(`${import.meta.env.VITE_HUSKY_AIASSISTANT_API_URL}/getmessages?session_id=${deviceId}`);
     const data = await res.json();
 
     if (data && data.length) {
@@ -327,9 +325,7 @@ const sendMessage = async () => {
 
   try {
     // 调用后端接口
-    // 本地测试：http://localhost:8000/chat
-    // 线上测试：https://api.aihusky.tech/chat
-    const response = await fetch('https://api.aihusky.tech/chat', {
+    const response = await fetch(`${import.meta.env.VITE_HUSKY_AIASSISTANT_API_URL}/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

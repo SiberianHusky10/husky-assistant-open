@@ -59,8 +59,7 @@ def call_llm(user_text: str, session_id: str) -> str:
     load_dotenv()
     client = OpenAI(
         api_key=os.getenv("OPENROUTER_API_KEY"),
-        base_url="https://openrouter.ai/api/v1",
-        # http_client=httpx.Client(verify=False)
+        base_url="https://openrouter.ai/api/v1"
     )
     #可选模型密钥DEEPSEEK_API_KEY，https://api.deepseek.com
     #可选模型密钥STEP_API_KEY，https://api.stepfun.com/v1
