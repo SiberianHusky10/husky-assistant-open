@@ -40,3 +40,6 @@ test/
 *.db
 
 secret.yaml
+
+# husky-aiassistant-user
+application.yml
