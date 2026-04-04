@@ -1,0 +1,30 @@
+spring:
+  mail:
+    host: smtp.qq.com         # 推荐 QQ 或 Gmail，企业邮箱也行
+    port: 587
+    username: yourQQmail@qq.com   # 你的邮箱地址
+    password: yoursecret    # 注意：这里必须是授权码，不是登录密码！
+    protocol: smtp
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.connectiontimeout: 10000    # 改成 10 秒
+      mail.smtp.timeout: 10000              # 改成 10 秒
+      mail.smtp.writetimeout: 10000         # 改成 10 秒
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      # password: your-redis-password   # 如果有密码
+      timeout: 5000
+
+  application:
+    name: husky-aiassistant-user
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/husky_aiassistant_user?useSSL=false&serverTimezone=UTC
+    username: root
+    password: yourmysql-password
+    driver-class-name: com.mysql.cj.jdbc.Driver
