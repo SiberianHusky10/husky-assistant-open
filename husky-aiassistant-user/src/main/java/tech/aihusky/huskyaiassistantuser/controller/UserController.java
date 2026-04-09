@@ -5,9 +5,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import tech.aihusky.huskyaiassistantuser.dto.LoginRequest;
+import tech.aihusky.huskyaiassistantuser.dto.LoginResponse;
 import tech.aihusky.huskyaiassistantuser.dto.RegisterRequest;
 import tech.aihusky.huskyaiassistantuser.service.UserService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,5 +49,18 @@ public class UserController {
             result.put("message", e.getMessage());
         }
         return result;
+    }
+
+    @PostMapping("/login")
+    public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        try {
+            return userService.login(request, httpRequest);
+        } catch (Exception e) {
+            LoginResponse resp = new LoginResponse();
+            resp.setCode(1);
+            resp.setMessage(e.getMessage());
+            resp.setToken(null);
+            return resp;
+        }
     }
 }
