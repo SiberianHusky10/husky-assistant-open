@@ -17,12 +17,6 @@ public interface UserMapper {
     int insert(User user);
 
     // UserMapper.java
-    @Update("""
-    UPDATE user_account
-    SET last_login_time = #{lastLoginTime},
-        last_login_ip = #{lastLoginIp},
-        area = #{area},
-        device = #{device}
-    WHERE user_id = #{userId}""")
+    @Update("UPDATE user_account SET last_login_time = #{lastLoginTime}, last_login_ip = #{lastLoginIp}, area = #{area}, device = #{device} WHERE user_id = #{userId}")
     void updateLoginInfo(User user);
 }

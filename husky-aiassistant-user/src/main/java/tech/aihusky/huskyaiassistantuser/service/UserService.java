@@ -90,12 +90,11 @@ public class UserService {
         // 4. 密码加密
         String encryptedPassword = BCrypt.hashpw(request.getPassword(), BCrypt.gensalt());
 
-        // 5. 插入用户（复用你原来的逻辑）
+        // 5. 插入用户
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(encryptedPassword);
-        // 如果你的 User 实体有其他字段（如 username），在这里设置
-        // user.setStatus(1);  // 如果需要
+        user.setStatus(1);
 
         userMapper.insert(user);
 
@@ -140,9 +139,9 @@ public class UserService {
             throw new RuntimeException("密码错误");
         }
 
-        // 4. 更新最后登录信息（重要！）
+        // 4. 更新最后登录信息
         String ip = getClientIp(httpRequest);
-        String area = getAreaByIp(ip);        // 可选：调用 IP 归属地接口或本地库
+        String area = getAreaByIp(ip);        // 调用 IP 归属地接口或本地库
         String device = StringUtils.isNotBlank(request.getDevice()) ? request.getDevice() : parseUserAgent(httpRequest);
 
         user.setLastLoginTime(LocalDateTime.now());
@@ -150,7 +149,7 @@ public class UserService {
         user.setArea(area);
         user.setDevice(device);
 
-        userMapper.updateLoginInfo(user);     // 需要在 Mapper 加这个更新方法
+        userMapper.updateLoginInfo(user);
 
         // 5. 生成 JWT
         String token = jwtService.generateToken(user.getUserId(), user.getEmail());
