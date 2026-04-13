@@ -1,10 +1,13 @@
-<script setup>
-</script>
-
 <template>
-  <router-view />
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <router-view />
+  </div>
 </template>
 
-<style>
+<script setup lang="ts">
+// App component
+</script>
 
+<style scoped>
+/* App-specific styles */
 </style>

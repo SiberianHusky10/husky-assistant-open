@@ -390,7 +390,7 @@ const formatTime = (time) => {
 }
 </script>
 
-<style>
+<style scoped>
 /* 全局重置，确保页面铺满整个浏览器 */
 *, *::before, *::after {
   box-sizing: border-box;

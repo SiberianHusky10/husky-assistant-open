@@ -108,8 +108,8 @@ const handleLogin = async () => {
     isLoading.value = false
     // 登录成功，这里可以存储 token 到 localStorage
     localStorage.setItem('token', 'mock-token')
-    // 重定向到首页（这里简单重定向到登录页，实际项目中应重定向到应用主页）
-    router.push('/')
+    // 重定向到 AI 语音助手页面
+    router.push('/ai-voice-assistant')
   }, 1000)
 }
 </script>
