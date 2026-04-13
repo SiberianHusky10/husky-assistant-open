@@ -3,14 +3,22 @@
     <!-- 头部 -->
     <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
       <h1 class="text-2xl font-bold text-indigo-600">AI 语音助手</h1>
-      <!-- 添加右上角按钮 -->
-      <button
-          @click="router.push('/voice')"
-          class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center space-x-2"
-      >
-        <Settings class="w-5 h-5" />
-        <span>语音模式</span>
-      </button>
+      <div class="flex items-center space-x-3">
+        <button
+            @click="router.push('/login')"
+            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+        >
+          <LogIn class="w-5 h-5" />
+          <span>登录</span>
+        </button>
+        <button
+            @click="router.push('/voice')"
+            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+        >
+          <Settings class="w-5 h-5" />
+          <span>语音模式</span>
+        </button>
+      </div>
     </header>
 
     <!-- 对话区域 -->
@@ -103,7 +111,7 @@
 
 <script setup>
 import {ref, onMounted, nextTick, watch } from 'vue'
-import {Mic, Send, Settings} from 'lucide-vue-next'
+import {Mic, Send, Settings, LogIn} from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
